@@ -18,6 +18,10 @@ module OAuth2
         @client.authorize_url(authorize_params.merge(params))
       end
 
+      def authorize_path(params={})
+        @client.authorize_path(authorize_params.merge(params))
+      end
+
       # Retrieve an access token given the specified validation code.
       #
       # @param [String] code The Authorization Code value

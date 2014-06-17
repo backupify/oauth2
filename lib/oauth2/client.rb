@@ -69,12 +69,12 @@ module OAuth2
       connection.build_url(options[:authorize_path], params).to_s
     end
 
-
     # The token endpoint URL of the OAuth2 provider
     #
     # @param [Hash] params additional query parameters
     def token_url(params=nil)
-      connection.build_url(options[:token_url], params).to_s
+      path = options[:access_token_path] || options[:token_url]
+      connection.build_url(path, params).to_s
     end
 
     # Makes a request relative to the specified site root.
