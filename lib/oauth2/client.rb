@@ -63,6 +63,13 @@ module OAuth2
       connection.build_url(options[:authorize_url], params).to_s
     end
 
+    # Salesforce endpoint URL
+    
+    def authorize_path(params=nil)
+      connection.build_url(options[:authorize_path], params).to_s
+    end
+
+
     # The token endpoint URL of the OAuth2 provider
     #
     # @param [Hash] params additional query parameters
