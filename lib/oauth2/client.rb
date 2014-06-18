@@ -97,6 +97,8 @@ module OAuth2
       end
       response = Response.new(response, :parse => opts[:parse])
 
+      raise_error = opts[:raise_errors] || options[:raise_errors]
+
       case response.status
       when 301, 302, 303, 307
         opts[:redirect_count] ||= 0
@@ -110,13 +112,24 @@ module OAuth2
       when 200..299, 300..399
         # on non-redirecting 3xx statuses, just return the response
         response
-      when 400..599
-        e = Error.new(response)
-        raise e if opts[:raise_errors] || options[:raise_errors]
-        response.error = e
+      when 401
+        e = OAuth2::AccessDenied.new("Received HTTP 401 during request.")
+        e.response = response
+        raise e if raise_error
+        response.error = e 
+        response
+      when 409
+        e = OAuth2::Conflict.new("Received HTTP 409 during request.")
+        e.response = response
+        raise e if raise_error
+        response.error = e 
         response
       else
-        raise Error.new(response), "Unhandled status code value of #{response.status}"
+        e = OAuth2::HTTPError.new("Received HTTP #{response.status} during request.")
+        e.response = response
+        raise e if raise_error
+        response.error = e
+        response
       end
     end
 
