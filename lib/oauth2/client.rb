@@ -140,6 +140,8 @@ module OAuth2
     # @return [AccessToken] the initalized AccessToken
     def get_token(params, access_token_opts={})
       opts = {:raise_errors => options[:raise_errors], :parse => params.delete(:parse)}
+      opts[:parse] = :query if params[:facebook]
+      params.delete(:facebook)
       if options[:token_method] == :post
         headers = params.delete(:headers)
         opts[:body] = params
