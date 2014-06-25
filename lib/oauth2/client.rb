@@ -115,24 +115,18 @@ module OAuth2
       when 401
         e = OAuth2::AccessDenied.new("Received HTTP 401 during request.")
         e.response = response
-        message = log_google_message(response)
-        Rails.logger.error message if message
         raise e if raise_error
         response.error = e 
         response
       when 409
         e = OAuth2::Conflict.new("Received HTTP 409 during request.")
         e.response = response
-        message = log_google_message(response)
-        Rails.logger.error message if message
         raise e if raise_error
         response.error = e 
         response
       else
         e = OAuth2::HTTPError.new("Received HTTP #{response.status} during request.")
         e.response = response
-        message = log_google_message(response)
-        Rails.logger.error message if message
         raise e if raise_error
         response.error = e
         response
@@ -192,14 +186,5 @@ module OAuth2
     def assertion
       @assertion ||= OAuth2::Strategy::Assertion.new(self)
     end
-
-    def log_google_message(response)
-      begin
-        ActiveSupport::JSON.decode(response.body)['error']['errors'][0]['message']
-      rescue 
-        nil
-      end
-    end
-
   end
 end
