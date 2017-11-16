@@ -35,7 +35,7 @@ describe OAuth2::Client do
     end
 
     it 'should leave Faraday::Connection#ssl unset' do
-      subject.connection.ssl.should == {}
+      subject.connection.ssl.to_hash.should == {}
     end
 
     it "should be able to pass a block to configure the connection" do
@@ -53,14 +53,14 @@ describe OAuth2::Client do
     end
 
     it "defaults raise_errors to true" do
-      subject.options[:raise_errors].should be_true
+      subject.options[:raise_errors].should be_truthy
     end
 
     it "allows true/false for raise_errors option" do
       client = OAuth2::Client.new('abc', 'def', :site => 'https://api.example.com', :raise_errors => false)
-      client.options[:raise_errors].should be_false
+      client.options[:raise_errors].should be_falsey
       client = OAuth2::Client.new('abc', 'def', :site => 'https://api.example.com', :raise_errors => true)
-      client.options[:raise_errors].should be_true
+      client.options[:raise_errors].should be_truthy
     end
 
     it "allows get/post for access_token_method option" do
@@ -136,29 +136,34 @@ describe OAuth2::Client do
       response.error.should_not be_nil
     end
 
-    %w(/unauthorized /conflict /error).each do |error_path|
-      it "raises OAuth2::Error on error response to path #{error_path}" do
-        lambda {subject.request(:get, error_path)}.should raise_error(OAuth2::Error)
+    it "raises OAuth2::Conflict error in response to a conflict" do
+      begin
+        subject.request(:get, '/conflict')
+        true.should be_falsey, "expected an OAuth2::Conflict error to be raised"
+      rescue OAuth2::Conflict => ex
+        ex.response.should_not be_nil
+        ex.to_s.should match(/Received HTTP 409/)
       end
     end
 
     it 'parses OAuth2 standard error response' do
       begin
         subject.request(:get, '/unauthorized')
-      rescue Exception => e
-        e.code.should == error_value
-        e.description.should == error_description_value
-        e.to_s.should match(/#{error_value}/)
-        e.to_s.should match(/#{error_description_value}/)
+        # test that the above raised an error as expected
+        true.should be_falsey, "expected an OAuth2::AccessDenied error to be raised"
+      rescue OAuth2::AccessDenied => ex
+        ex.response.should_not be_nil
+        ex.to_s.should match(/Received HTTP 401/)
       end
     end
 
     it "provides the response in the Exception" do
       begin
         subject.request(:get, '/error')
-      rescue Exception => e
-        e.response.should_not be_nil
-        e.to_s.should match(/unknown error/)
+        true.should be_falsey, "expected an OAuth2::HTTPError error to be raised"
+      rescue OAuth2::HTTPError => ex
+        ex.response.should_not be_nil
+        ex.to_s.should match(/Received HTTP 500/)
       end
     end
   end
@@ -181,7 +186,7 @@ describe OAuth2::Client do
     end
 
     it 'should pass the SSL options along to Faraday::Connection#ssl' do
-      subject.connection.ssl.should == {:ca_file => 'foo.pem'}
+      subject.connection.ssl.to_hash.should == {:ca_file => 'foo.pem'}
     end
   end
 end

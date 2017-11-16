@@ -59,7 +59,7 @@ describe AccessToken do
       target.options[:header_format].should == 'Bearer %'
       target.options[:mode].should == :body
     end
-    
+
     it "initializes with a string expires_at" do
       hash = {:access_token => token, :expires_at => '1361396829', 'foo' => 'bar'}
       target = AccessToken.from_hash(client, hash)
@@ -70,36 +70,27 @@ describe AccessToken do
 
   describe '#request' do
     context ':mode => :header' do
-      before :all do
-        subject.options[:mode] = :header
-      end
-
       VERBS.each do |verb|
         it "sends the token in the Authorization header for a #{verb.to_s.upcase} request" do
+          subject.options[:mode] = :header
           subject.post('/token/header').body.should include(token)
         end
       end
     end
 
     context ':mode => :query' do
-      before :all do
-        subject.options[:mode] = :query
-      end
-
       VERBS.each do |verb|
         it "sends the token in the Authorization header for a #{verb.to_s.upcase} request" do
+          subject.options[:mode] = :query
           subject.post('/token/query').body.should == token
         end
       end
     end
 
     context ':mode => :body' do
-      before :all do
-        subject.options[:mode] = :body
-      end
-
       VERBS.each do |verb|
         it "sends the token in the Authorization header for a #{verb.to_s.upcase} request" do
+          subject.options[:mode] = :body
           subject.post('/token/body').body.split('=').last.should == token
         end
       end
@@ -132,7 +123,7 @@ describe AccessToken do
     it 'should be true if expires_at is in the past' do
       access = AccessToken.new(client, token, :refresh_token => 'abaca', :expires_in => 600)
       @now = Time.now + 10800
-      Time.stub!(:now).and_return(@now)
+      Time.stub(:now).and_return(@now)
       access.should be_expired
     end
 
